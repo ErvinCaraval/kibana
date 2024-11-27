@@ -1,0 +1,20 @@
+{
+  "name": "kibana",
+  "version": "1.0.0",
+  "description": "Un proyecto relacionado con Kibana.",
+  "main": "kibana.js",
+  "scripts": {
+    "start": "node kibana.js",
+    "dev": "nodemon kibana.js"
+  },
+  "keywords": [
+    "kibana",
+    "elasticsearch",
+    "logging"
+  ],
+  "author": "Tu Nombre o Equipo",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.8"
+  }
+}

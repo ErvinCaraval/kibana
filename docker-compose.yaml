@@ -1,0 +1,70 @@
+services:
+  Elasticsearch:
+    image: elasticsearch:7.16.2
+    container_name: elasticsearch
+    restart: always
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data/
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      discovery.type: single-node    
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    networks:
+      - elk
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  Logstash:
+    image: logstash:7.5.2
+    container_name: logstash
+    restart: always
+    volumes:
+      - ./logstash/:/logstash_dir
+    command: logstash -f /logstash_dir/logstash.conf 
+    depends_on:
+      - Elasticsearch
+    ports:
+      - '9600:9600'
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"    
+    networks:
+      - elk
+
+  Kibana:
+    image: kibana:7.16.2
+    container_name: kibana
+    restart: always       
+    ports:
+      - '5601:5601'
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200  
+    depends_on:
+      - Elasticsearch  
+    networks:
+      - elk
+
+  nodeapp:
+    build:
+      context: ./kibana  # Correct path to Node.js app
+    container_name: node-app
+    depends_on:
+      Elasticsearch:
+        condition: service_healthy  # Wait for Elasticsearch to be healthy
+    environment:
+      - ELASTICSEARCH_HOST=http://elasticsearch:9200
+    networks:
+      - elk
+    command: ["npm", "start"]
+
+volumes:
+  elastic_data: {}
+
+networks:
+  elk:
+    driver: bridge
